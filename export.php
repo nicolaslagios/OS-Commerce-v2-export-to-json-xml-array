@@ -25,7 +25,15 @@
  * 
  * Note2: You can directly call this script with https://domain.com/export.php?format=xml or json or array 
  *        if you want to bypass the $format variable configuration
+ * 
+ * Note3 You can also add parameters like start=0 , end=100 etc on the url call.
+ *       Example https://domain.com/export.php?format=json&start=0&end=1000
+ *       That means that each iteration have a custom limit.
+ *       In this case, it starts at product 1 (ie 0) and ends at product 99 (ie 100).
+ *       Next time, you can put 101 - 200, which means from product 100 to product 199 etc.
  */
+
+//σε εκκρεμότητα η επιλογή γλώσσας και τα comments
 
 require_once 'includes/configure.php'; // OS Commerce 2+ configuration file
 
@@ -34,7 +42,7 @@ $debugging = false; // Enable or disable debugging
 $increaselimits = true; //Enable or disable increased php limits
 $format = "json"; // Print the results in 3 formats: array, json, xml. This variable can be bypassed by using ?format parameter in url
 $addextraprice = true; // If true, adds an extra price in EUR; otherwise, make it false and ignore the api_key line
-$api_key = "ADD-YOUR-KEY-HERE"; // Add your API key from freecurrencyapi.com
+$api_key = "ADD-YOUR-API-KEY-HERE"; // Add your API key from freecurrencyapi.com
 
 //domain name configuration
 $autodomain = false; //there is some situation where the domain cannot automatically retrieved, like containers etc
@@ -43,14 +51,9 @@ if ($autodomain) {
     $domainName = $_SERVER['HTTP_HOST']; // Don't change anything on this line
 } else {
     $protocol = "https"; // If you set $autodomain to false, then Change the protocol here, http or https
-    $domainName = "domain.com"; // If you set $autodomain to false, then Change the domain with or without www
+    $domainName = "ADD-YOUR-CUSTOM-DOMAIN.com"; // If you set $autodomain to false, then Change the domain with or without www
 }
 $domain = $protocol . "://" . $domainName; // Don't change anything on this line
-
-
-
-
-
 
 
 
@@ -79,52 +82,25 @@ if ($connection->connect_error) {
 }
 
 // MySQL Query 1
-if (isset($_GET['start']) && isset($_GET['end']) && is_numeric($_GET['start']) && is_numeric($_GET['end'])) {
-    $start = $_GET['start'];
-    $end = $_GET['end'];
-    $limit = $end - $start + 1;
-    $offset = $start - 1;
-    $query = "
-        SELECT 
-            p.products_id AS product_id,
-            p.products_model AS sku,
-            pd.products_name AS name,
-            pd.products_description AS description,
-            ptc.categories_id AS category_id,
-            p.products_quantity AS QTY,
-            p.products_weight AS weight,
-            p.products_price AS price,
-            CONCAT('".$domain."/images/', REPLACE(p.products_image, ' ', '%20')) AS main_image,
-            GROUP_CONCAT(CONCAT('".$domain."/images/', REPLACE(pi.image, ' ', '%20'))) AS additional_images
-        FROM products p
-        JOIN products_description pd ON p.products_id = pd.products_id
-        JOIN products_to_categories ptc ON p.products_id = ptc.products_id
-        LEFT JOIN products_images pi ON p.products_id = pi.products_id
-        WHERE pd.language_id = 1
-        GROUP BY p.products_id;
-        LIMIT ".$limit." OFFSET ".$offset.";
-    ";
-} else {
-    $query = "
-        SELECT 
-            p.products_id AS product_id,
-            p.products_model AS sku,
-            pd.products_name AS name,
-            pd.products_description AS description,
-            ptc.categories_id AS category_id,
-            p.products_quantity AS QTY,
-            p.products_weight AS weight,
-            p.products_price AS price,
-            CONCAT('".$domain."/images/', REPLACE(p.products_image, ' ', '%20')) AS main_image,
-            GROUP_CONCAT(CONCAT('".$domain."/images/', REPLACE(pi.image, ' ', '%20'))) AS additional_images
-        FROM products p
-        JOIN products_description pd ON p.products_id = pd.products_id
-        JOIN products_to_categories ptc ON p.products_id = ptc.products_id
-        LEFT JOIN products_images pi ON p.products_id = pi.products_id
-        WHERE pd.language_id = 1
-        GROUP BY p.products_id;
-    ";
-}
+$query = "
+    SELECT 
+        p.products_id AS product_id,
+        p.products_model AS sku,
+        pd.products_name AS name,
+        pd.products_description AS description,
+        ptc.categories_id AS category_id,
+        p.products_quantity AS QTY,
+        p.products_weight AS weight,
+        p.products_price AS price,
+        CONCAT('".$domain."/images/', REPLACE(p.products_image, ' ', '%20')) AS main_image,
+        GROUP_CONCAT(CONCAT('".$domain."/images/', REPLACE(pi.image, ' ', '%20'))) AS additional_images
+    FROM products p
+    JOIN products_description pd ON p.products_id = pd.products_id
+    JOIN products_to_categories ptc ON p.products_id = ptc.products_id
+    LEFT JOIN products_images pi ON p.products_id = pi.products_id
+    WHERE pd.language_id = 1
+    GROUP BY p.products_id;
+";
 $productResult = $connection->query($query);
 
 // MySQL Query 2 (for categories)
@@ -185,8 +161,8 @@ while ($attribute = $attributeResult->fetch_assoc()) {
 $products = [];
 
 if ($addextraprice) {
-    //$exchangeRate = fetchExchangeRate($api_key); //this is the one time builded variable for the eur price
-    $exchangeRate = 0.80;
+    $exchangeRate = fetchExchangeRate($api_key); //this is the one time builded variable for the eur price
+    //$exchangeRate = 0.80; //uncoment this and comment the above line if you want to test without calling the freecurrencyapi.com api
 }
 
 if ($productResult) {
@@ -223,6 +199,13 @@ if ($productResult) {
 
 // Close the connection
 $connection->close();
+
+//if start and end parameters are set
+if (isset($_GET['start']) && isset($_GET['end']) && is_numeric($_GET['start']) && is_numeric($_GET['end'])) {
+    $start = $_GET['start'];
+    $end = $_GET['end'];
+    $products = array_slice($products, $start, $end - $start);
+}
 
 // Printing
 if ($format == "array") {
