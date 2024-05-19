@@ -33,7 +33,7 @@
  *       Next time, you can put 101 - 200, which means from product 100 to product 199 etc.
  */
 
-//σε εκκρεμότητα η επιλογή γλώσσας και τα comments
+//language selection and comments pending
 
 require_once 'includes/configure.php'; // OS Commerce 2+ configuration file
 
