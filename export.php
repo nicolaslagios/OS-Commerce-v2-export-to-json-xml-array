@@ -31,9 +31,11 @@
  *       That means that each iteration have a custom limit.
  *       In this case, it starts at product 1 (ie 0) and ends at product 99 (ie 100).
  *       Next time, you can put 101 - 200, which means from product 100 to product 199 etc.
+ *
+ * Note4 You can add the language parameter in order to get the next landuage.
+ *       eg if you have more than one languages, you can add the parameter "lang" + the number of the language
+ *       example: https://domain.com/export.php?format=json&lang=1 for english or https://domain.com/export.php?format=json&lang=2 etc
  */
-
-//language selection and comments pending
 
 require_once 'includes/configure.php'; // OS Commerce 2+ configuration file
 
@@ -41,6 +43,7 @@ require_once 'includes/configure.php'; // OS Commerce 2+ configuration file
 $debugging = false; // Enable or disable debugging
 $increaselimits = true; //Enable or disable increased php limits
 $format = "json"; // Print the results in 3 formats: array, json, xml. This variable can be bypassed by using ?format parameter in url
+$language = 1; //change the number in order to choose the language you want. This variable can be bypassed by using ?lang parameter in url
 $addextraprice = true; // If true, adds an extra price in EUR; otherwise, make it false and ignore the api_key line
 $api_key = "ADD-YOUR-API-KEY-HERE"; // Add your API key from freecurrencyapi.com
 
@@ -75,6 +78,10 @@ if (isset($_GET['format'])) {
     $format = $_GET['format'];
 }
 
+if (isset($_GET['lang']) && is_numeric($_GET['lang'])) {
+    $language = $_GET['lang'];
+}
+
 // Create a connection to the database
 $connection = new mysqli(DB_SERVER, DB_SERVER_USERNAME, DB_SERVER_PASSWORD, DB_DATABASE);
 if ($connection->connect_error) {
@@ -98,7 +105,7 @@ $query = "
     JOIN products_description pd ON p.products_id = pd.products_id
     JOIN products_to_categories ptc ON p.products_id = ptc.products_id
     LEFT JOIN products_images pi ON p.products_id = pi.products_id
-    WHERE pd.language_id = 1
+    WHERE pd.language_id = ".$language."
     GROUP BY p.products_id;
 ";
 $productResult = $connection->query($query);
@@ -111,7 +118,7 @@ $categoryQuery = "
         cd.categories_name
     FROM categories c
     JOIN categories_description cd ON c.categories_id = cd.categories_id
-    WHERE cd.language_id = 1;
+    WHERE cd.language_id = ".$language.";
 ";
 $categoryResult = $connection->query($categoryQuery);
 
@@ -128,8 +135,8 @@ $attributeQuery = "
     JOIN products_options ON products_attributes.options_id = products_options.products_options_id
     JOIN products_options_values ON products_attributes.options_values_id = products_options_values.products_options_values_id
     WHERE
-        products_options.language_id = 1
-        AND products_options_values.language_id = 1;
+        products_options.language_id = ".$language."
+        AND products_options_values.language_id = ".$language.";
 ";
 $attributeResult = $connection->query($attributeQuery);
 
