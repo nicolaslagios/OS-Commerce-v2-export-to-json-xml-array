@@ -1,7 +1,9 @@
 <?php
 
 /**
- * Script for export all products data from OS Commerce v2+.
+ * OS Commerce 2 Custom Products API v.1.2.0 (export your products)
+ * 
+ * Script version 1.2.0 (28/5/2024)
  * 
  * Author: Nicolas Lagios
  * Website: https://nicolaslagios.com
@@ -23,21 +25,31 @@
  * Note: Do not modify the code below the configuration section unless you know 
  *       what you are doing.
  * 
- * Note2: You can directly call this script with https://domain.com/export.php?format=xml or json or array 
+ * Note2: You can directly call this script with https://domain.com/export.php?auth_key=kqMlgfJ5574i&format=xml or json or array 
  *        if you want to bypass the $format variable configuration
  * 
  * Note3 You can also add parameters like start=0 , end=100 etc on the url call.
- *       Example https://domain.com/export.php?format=json&start=0&end=1000
+ *       Example https://domain.com/export.php?auth_key=kqMlgfJ5574i&format=json&start=0&end=1000
  *       That means that each iteration have a custom limit.
  *       In this case, it starts at product 1 (ie 0) and ends at product 99 (ie 100).
  *       Next time, you can put 101 - 200, which means from product 100 to product 199 etc.
- *
+ * 
  * Note4 You can add the language parameter in order to get the next landuage.
  *       eg if you have more than one languages, you can add the parameter "lang" + the number of the language
- *       example: https://domain.com/export.php?format=json&lang=1 for english or https://domain.com/export.php?format=json&lang=2 etc
+ *       example: https://domain.com/export.php?auth_key=kqMlgfJ5574i&format=json&lang=1 for english or https://domain.com/export.php?auth_key=kqMlgfJ5574i&format=json&lang=2 etc
  */
 
-require_once 'includes/configure.php'; // OS Commerce 2+ configuration file
+
+ // Define the authorization
+$predefined_auth_key = "kqMlgfJ5574i"; // add your authorization key here and don't forget to include it in your url parameter
+
+// Check for authorization
+if (!isset($_GET['auth_key']) || $_GET['auth_key'] !== $predefined_auth_key) {
+    header("HTTP/1.1 401 Unauthorized");
+    die("Unauthorized access.");
+}
+
+require_once 'includes/configure.php'; // OS Commerce 2+ configuration file loading
 
 // Configuration variables
 $debugging = false; // Enable or disable debugging
@@ -46,6 +58,7 @@ $format = "json"; // Print the results in 3 formats: array, json, xml. This vari
 $language = 1; //change the number in order to choose the language you want. This variable can be bypassed by using ?lang parameter in url
 $addextraprice = true; // If true, adds an extra price in EUR; otherwise, make it false and ignore the api_key line
 $api_key = "ADD-YOUR-API-KEY-HERE"; // Add your API key from freecurrencyapi.com
+
 
 //domain name configuration
 $autodomain = false; //there is some situation where the domain cannot automatically retrieved, like containers etc
@@ -59,6 +72,9 @@ if ($autodomain) {
 $domain = $protocol . "://" . $domainName; // Don't change anything on this line
 
 
+//attributes price and weight configuration (new feature since 1.2.0 - 28/5/2024)
+$sum_price_and_weight = true; //true if you want to summarize the attribute price with parent price and attributes weight with parent weight
+                              //this is because OS Commerce gives as attribute price and weight, only the difference and not the actual value.
 
 
 /* ----------------- Don't mess with anything from here on out unless you know what you're doing ----------------- */
@@ -193,8 +209,22 @@ if ($productResult) {
 
         $row['category_url'] = str_replace("&", "", generateCategoryURL($domain, $row['category_id'], $categories)); // Generate category URL
 
-        if (isset($attributes[$row['product_id']])) {
-            $row['attributes'] = $attributes[$row['product_id']]; // Add attributes if available
+        if (isset($attributes[$row['product_id']])) { // Add attributes if available
+            if ($sum_price_and_weight) {
+                $parent_price = $row['price'];
+                $parent_weight = $row['weight'];
+                foreach ($attributes[$row['product_id']] as $index => $attribute) {
+                    if ($index == 0) {
+                        $attribute['term_price'] = $parent_price;
+                        $attribute['term_weight'] = $parent_weight;
+                    } else {
+                        $attribute['term_price'] = $parent_price + $attribute['term_price'];
+                        $attribute['term_weight'] = $parent_weight + $attribute['term_weight'];
+                    }
+                    $attributes[$row['product_id']][$index] = $attribute;
+                }
+            }
+            $row['attributes'] = $attributes[$row['product_id']];
         }
 
         $products[] = $row; // Add to the products array
