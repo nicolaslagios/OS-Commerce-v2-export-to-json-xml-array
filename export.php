@@ -57,7 +57,7 @@ $increaselimits = true; //Enable or disable increased php limits
 $format = "json"; // Print the results in 3 formats: array, json, xml. This variable can be bypassed by using ?format parameter in url
 $language = 1; //change the number in order to choose the language you want. This variable can be bypassed by using ?lang parameter in url
 $addextraprice = true; // If true, adds an extra price in EUR; otherwise, make it false and ignore the api_key line
-$api_key = "fca_live_hQPaDWlJudeSCbjQObVHP8iut5dhFm4fIXACphNG"; // Add your API key from freecurrencyapi.com
+$api_key = "ADD-YOUR-API-KEY-HERE"; // Add your API key from freecurrencyapi.com
 
 
 //domain name configuration
@@ -67,7 +67,7 @@ if ($autodomain) {
     $domainName = $_SERVER['HTTP_HOST']; // Don't change anything on this line
 } else {
     $protocol = "https"; // If you set $autodomain to false, then Change the protocol here, http or https
-    $domainName = "nioras.com"; // If you set $autodomain to false, then Change the domain with or without www
+    $domainName = "ADD-YOUR-CUSTOM-DOMAIN.com"; // If you set $autodomain to false, then Change the domain with or without www
 }
 $domain = $protocol . "://" . $domainName; // Don't change anything on this line
 
@@ -184,8 +184,8 @@ while ($attribute = $attributeResult->fetch_assoc()) {
 $products = [];
 
 if ($addextraprice) {
-    //$exchangeRate = fetchExchangeRate($api_key); //this is the one time builded variable for the eur price
-    $exchangeRate = 0.80;
+    $exchangeRate = fetchExchangeRate($api_key); //this is the one time builded variable for the eur price
+    //$exchangeRate = 0.80; //uncoment this and comment the above line if you want to test without calling the freecurrencyapi.com api
 }
 
 if ($productResult) {
