@@ -1,9 +1,9 @@
 <?php
 
 /**
- * OS Commerce 2 Custom Products API v.1.2.0 (export your products)
+ * OS Commerce 2 Custom Products API v.1.2.01 (export your products)
  * 
- * Script version 1.2.0 (28/5/2024)
+ * Script version 1.2.1 (29/5/2024)
  * 
  * Author: Nicolas Lagios
  * Website: https://nicolaslagios.com
@@ -37,6 +37,9 @@
  * Note4 You can add the language parameter in order to get the next landuage.
  *       eg if you have more than one languages, you can add the parameter "lang" + the number of the language
  *       example: https://domain.com/export.php?auth_key=kqMlgfJ5574i&format=json&lang=1 for english or https://domain.com/export.php?auth_key=kqMlgfJ5574i&format=json&lang=2 etc
+ *
+ * Note5 As of 29/5/2024 we added Transliteration support for the Greek language in order to create the correct product and category urls
+ *       If your extra language is different, you have to make the necessary changes on the transliterate function (line 279), read comments there.
  */
 
 
@@ -272,9 +275,25 @@ function buildCategoryPath($categoryId, $categories) {
     return implode(' > ', $path);
 }
 
+// Function to transliterate Greek characters to Latin characters
+function transliterate($text) {
+    //$chinesse = array(); //this is an example for extra language
+    $greek = array('α', 'β', 'γ', 'δ', 'ε', 'ζ', 'η', 'θ', 'ι', 'κ', 'λ', 'μ', 'ν', 'ξ', 'ο', 'π', 'ρ', 'σ', 'τ', 'υ', 'φ', 'χ', 'ψ', 'ω', 'ά', 'έ', 'ή', 'ί', 'ό', 'ύ', 'ώ', 'ς', 'ϊ', 'ΰ', 'ϋ', 'ΐ');
+    $latin = array('a', 'b', 'g', 'd', 'e', 'z', 'h', 'th', 'i', 'k', 'l', 'm', 'n', 'x', 'o', 'p', 'r', 's', 't', 'y', 'f', 'ch', 'ps', 'o', 'a', 'e', 'i', 'i', 'o', 'y', 'o', 's', 'i', 'y', 'y', 'i');
+
+    $firstreplacement = str_replace($greek, $latin, mb_strtolower($text));
+    //$secondreplacement = str_replace($chinesse, $latin, mb_strtolower($text)); //this is an example for extra language
+    
+    $final = $firstreplacement;
+    //$final = $firstreplacement.$secondreplacement; //this is an example for extra language
+
+    return $final;
+}
+
 // Function to generate product URL
 function generateProductURL($domain, $productName, $productId) {
-    $url = $domain . '/' . strtolower(str_replace(' ', '-', $productName)) . '-p-' . $productId . '.html';
+    $transliteratedProductName = transliterate(str_replace(' ', '-', $productName));
+    $url = $domain . '/' . $transliteratedProductName . '-p-' . $productId . '.html';
     return $url;
 }
 
@@ -286,7 +305,7 @@ function generateCategoryURL($domain, $categoryId, $categories) {
         $categoryId = $categories[$categoryId]['parent_id'];
     }
     $ids_string = implode('_', $ids);
-    $categoryName = strtolower(str_replace(' ', '-', $categories[end($ids)]['name']));
+    $categoryName = transliterate(str_replace(' ', '-', $categories[end($ids)]['name']));
     $url = $domain . '/' . $categoryName . '-c-' . $ids_string . '.html';
     return $url;
 }
