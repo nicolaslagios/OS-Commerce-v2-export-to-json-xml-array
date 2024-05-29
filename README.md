@@ -1,4 +1,4 @@
-# OS-Commerce v2+ Export Script
+# OS Commerce 2 Custom Products API v.1.2.1
 
 This script exports all product data from an OS Commerce v2+ database in various formats (array, JSON, XML). 
 

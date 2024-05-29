@@ -1,7 +1,7 @@
 <?php
 
 /**
- * OS Commerce 2 Custom Products API v.1.2.01 (export your products)
+ * OS Commerce 2 Custom Products API v.1.2.1 (export your products)
  * 
  * Script version 1.2.1 (29/5/2024)
  * 
