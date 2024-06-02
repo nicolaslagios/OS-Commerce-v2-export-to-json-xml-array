@@ -1,9 +1,9 @@
 <?php
 
 /**
- * OS Commerce 2 Custom Products API v.1.2.1 (export your products)
+ * OS Commerce 2 Custom Products API v.1.2.2 (export your products)
  * 
- * Script version 1.2.1 (29/5/2024)
+ * Script version 1.2.2 (3/6/2024)
  * 
  * Author: Nicolas Lagios
  * Website: https://nicolaslagios.com
@@ -40,6 +40,9 @@
  *
  * Note5 As of 29/5/2024 we added Transliteration support for the Greek language in order to create the correct product and category urls
  *       If your extra language is different, you have to make the necessary changes on the transliterate function (line 279), read comments there.
+ * 
+ * Note6 Other Updates:
+ *       3/6/2024 -> Added strip_tags() to categories to avoid any html mistake
  */
 
 
@@ -269,7 +272,7 @@ if ($format == "array") {
 function buildCategoryPath($categoryId, $categories) {
     $path = [];
     while ($categoryId != 0 && isset($categories[$categoryId])) {
-        array_unshift($path, $categories[$categoryId]['name']);
+        array_unshift($path, strip_tags($categories[$categoryId]['name']));
         $categoryId = $categories[$categoryId]['parent_id'];
     }
     return implode(' > ', $path);

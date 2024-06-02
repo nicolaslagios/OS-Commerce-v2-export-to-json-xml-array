@@ -1,4 +1,4 @@
-# OS Commerce 2 Custom Products API v.1.2.1
+# OS Commerce 2 Custom Products API v.1.2.2
 
 This script exports all product data from an OS Commerce v2+ database in various formats (array, JSON, XML). 
 
@@ -75,3 +75,8 @@ This project is licensed under the GNU License - see the [LICENSE](LICENSE) file
 ## Author
 
 **Nicolas Lagios** - [Website](https://nicolaslagios.com)
+
+## Changelog
+- **v1.2.2**: 3/6/2024 -> Added strip_tags() to categories to avoid any html mistake
+- **v1.2.1**: As of 29/5/2024 we added Transliteration support for the Greek language in order to create the correct product and category urls. If your extra language is different, you have to make the necessary changes on the transliterate function (line 279), read comments there.
+- **v1.2**: Completed stable version
