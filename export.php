@@ -43,6 +43,8 @@
  * 
  * Note6 Other Updates:
  *       3/6/2024 -> Added strip_tags() to categories to avoid any html mistake
+ *       30/11/2024 -> We noticed that products with only one variant receive the original price without adding the weight and cost of the variant.
+ *                     For now, run the following sql code to find them: https://pastebin.com/1sBXCrG0
  */
 
 
